@@ -26,10 +26,9 @@ def get_image_num(image_num, image_set):
             return str(image_num)
 
 
-def plot(rdms, ind, image_set, images_dir, task="fmri", full_meg_rdms=None):
-    columns = 2 if task == "fmri" else 3
+def plot(rdms, ind, image_set, images_dir):
+    columns = 2
     rows = 20
-
     for i in range(1, rows+1, 2):
         fig = plt.figure()
         plt.title("RDM: {0:.4f}".format(rdms[ind[i-1][0]][ind[i-1][1]]))
@@ -48,13 +47,37 @@ def plot(rdms, ind, image_set, images_dir, task="fmri", full_meg_rdms=None):
         plt.yticks([])
         plt.show()
 
-        if task != "fmri":
-            fig.add_subplot(1, columns, 3)
-            plt.plot([x for x in range(20)],
-                     full_meg_rdms[:ind[i-1][0], ind[i-1][1]])
-            plt.xticks([])
-            plt.yticks([])
-            plt.show()
+
+def plot_meg(updated_subject_rdms, ind, image_set, images_dir, rdms, subject):
+    rows = 20
+    full_subj_rdms = rdms[subject]  # 20 x 92 x 92 or 20 x 118 x 118
+    new_person_rdm = np.mean(rdms, axis=0)  # 20 x 92 x 92 or 20 x 118 x 118
+    print(full_subj_rdms.shape, new_person_rdm.shape)
+    for i in range(1, rows+1, 2):
+        f, (a1, a2, a3, a4) = plt.subplots(1, 4, figsize=(15, 5))
+        f.suptitle("RDM: {0:.4f}".format(
+            updated_subject_rdms[ind[i-1][0]][ind[i-1][1]]))
+        image_name = get_image_num(ind[i-1][0]+1, image_set)
+        img = image.imread(images_dir+image_name+".jpg")
+        a1.imshow(img)
+        a1.set_xticklabels([])
+        a1.set_yticklabels([])
+
+        image_name = get_image_num(ind[i-1][1]+1, image_set)
+        img = image.imread(images_dir+image_name+".jpg")
+        a2.imshow(img)
+        a2.set_xticklabels([])
+        a2.set_yticklabels([])
+
+        a3.set_title("Subject: " + str(subject))
+        a3.plot([x for x in range(20)],
+                full_subj_rdms[:, ind[i-1][0], ind[i-1][1]])
+
+        a4.set_title("Mean of all Subjects")
+
+        a4.plot([x for x in range(20)],
+                new_person_rdm[:, ind[i-1][0], ind[i-1][1]])
+        plt.show()
 
 
 def sim_dissim_indices(rdms):
@@ -71,8 +94,7 @@ def sim_dissim_indices(rdms):
     return min[0], max[0]
 
 
-def _investigate(image_set, subject, rdms, task="fmri", full_rdms=None):
-    print(rdms.shape, full_rdms.shape)
+def _investigate(image_set, subject, rdms, task="fmri"):
     images_dir = "../data/Training_Data/"+image_set + \
         "_Image_Set/"+image_set+"images/image_"
     if task == "fmri":
@@ -82,21 +104,25 @@ def _investigate(image_set, subject, rdms, task="fmri", full_rdms=None):
         plot(subject_early_rdm, min_ind, image_set, images_dir)
         plot(subject_early_rdm, max_ind, image_set, images_dir)
     elif task == "meg_mean":
-        subject_early_rdm = rdms[subject]
-        min_ind, max_ind = sim_dissim_indices(subject_early_rdm)
+
+        subject_rdm = np.mean(rdms, axis=1)[subject]
+        min_ind, max_ind = sim_dissim_indices(subject_rdm)
         # plot_image(min_ind, max_ind, image_set, subject_early_rdm)
-        plot(subject_early_rdm, min_ind, image_set,
-             images_dir, task="fmri", full_meg_rdms=None)
-        plot(subject_early_rdm, max_ind, image_set,
-             images_dir, task="fmri", full_meg_rdms=None)
+        plot_meg(subject_rdm, min_ind,
+                 image_set, images_dir, rdms, subject)
+        plot_meg(subject_rdm, max_ind,
+                 image_set, images_dir, rdms, subject)
+
     else:
         subject_early_rdm = np.amin(rdms, axis=1)[subject]
         min_ind, _ = sim_dissim_indices(subject_early_rdm)
-        plot(subject_early_rdm, min_ind, image_set, images_dir)
+        plot_meg(subject_early_rdm, min_ind,
+                 image_set, images_dir, rdms, subject)
 
         subject_late_rdm = np.amax(rdms, axis=1)[subject]
         _, max_ind = sim_dissim_indices(subject_late_rdm)
-        plot(subject_late_rdm, max_ind, image_set, images_dir)
+        plot_meg(subject_late_rdm, max_ind,
+                 image_set, images_dir, rdms, subject)
 
 
 def fmri_investigation():
@@ -126,14 +152,16 @@ def meg_investigation():
         print("+"*30+"MEG Early RDMs"+"+"*30)
         for subject in range(15):
             print("+"*5, "Subject: ", subject, "+"*5)
-            _investigate(image_set, subject, np.mean(
-                rdms_dict[meg_keys[0]], axis=1), full_rdms=rdms_dict[meg_keys[0]])
+            _investigate(image_set, subject,
+                         rdms_dict[meg_keys[0]], task="meg_mean")
+            break
         print("+"*30+"MEG Late RDMs"+"+"*30)
         for subject in range(15):
             print("+"*5, "Subject: ", subject, "+"*5)
 
-            _investigate(image_set, subject, np.mean(
-                rdms_dict[meg_keys[1]], axis=1), full_rdms=rdms_dict[meg_keys[0]])
+            _investigate(image_set, subject,
+                         rdms_dict[meg_keys[1]], task="meg_mean")
+            break
 
 
 def meg_investigation_with_max():
@@ -147,12 +175,12 @@ def meg_investigation_with_max():
         for subject in range(15):
             print("+"*5, "Subject: ", subject, "+"*5)
             _investigate(image_set, subject,
-                         rdms_dict[meg_keys[0]], task="meg", full_rdms=rdms_dict[meg_keys[0]])
+                         rdms_dict[meg_keys[0]], task="meg")
         print("+"*30+"MEG Late RDMs"+"+"*30)
         for subject in range(15):
             print("+"*5, "Subject: ", subject, "+"*5)
             _investigate(image_set, subject,
-                         rdms_dict[meg_keys[1]], task="meg", full_rdms=rdms_dict[meg_keys[0]])
+                         rdms_dict[meg_keys[1]], task="meg")
 
 
 # fmri_investigation()
