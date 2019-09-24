@@ -6,7 +6,9 @@ import matplotlib.image as image
 from tqdm import tqdm, trange
 import numpy as np
 from scipy import io as sio
-
+import pandas as pd
+import os
+from IPython.display import display
 fmri_files = ["./target_rdms/target_fmri_92.mat",
               "./target_rdms/target_fmri_118.mat"]
 fmri_keys = ["EVC_RDMs", "IT_RDMs"]
@@ -15,18 +17,43 @@ meg_files = ["./target_rdms/target_meg_92.mat",
              "./target_rdms/target_meg_118.mat"]
 meg_keys = ["MEG_RDMs_early", "MEG_RDMs_late"]
 
-corr_pearson = {}
+subjects_names = [x for x in range(15)]
 
 
-def get_correllation_row(rdm,  name, image_set, image_id=7):
-    for subject1 in trange(15):
-        corr_pearson['Subject_{}'.format(subject1)] = []
-        for subject2 in trange(15):
+def get_image_num(image_num, image_set):
+    if image_set == 92:
+        return str(
+            image_num) if image_num > 9 else "0"+str(image_num)
+    else:
+        if image_num < 10:
+            return "00"+str(image_num)
+        elif image_num < 100:
+            return "0"+str(image_num)
+        else:
+            return str(image_num)
+
+
+def get_correllation_row(rdm, image_set, image_id):
+    corr_pearson = {}
+    for subject1 in range(15):
+        corr_pearson[subject1] = []
+        for subject2 in range(15):
             row1 = rdm[subject1, image_id, :]
             row2 = rdm[subject2, image_id, :]
-            corr_pearson['Subject_{}'.format(subject1)].append(
+            corr_pearson[subject1].append(
                 np.corrcoef(row1, row2)[0, 1])
-    sio.savemat(name + "_{}.mat".format(image_set), corr_pearson)
+        corr_pearson[subject1] = np.array(
+            corr_pearson[subject1])
+    return pd.DataFrame.from_dict(
+        corr_pearson, orient='index', columns=subjects_names)
+
+
+def plot_image(id, image_set):
+    temp = 'image_{}'.format(get_image_num(id, image_set))
+    path = os.path.join('..', 'data', 'Training_Data',
+                        '{}_Image_Set'.format(image_set), '{}images'.format(image_set), temp)
+    img = plt.imread(path + '.jpg')
+    plt.imshow(img)
 
 
 def get_image_pair_variation(rdm, i=7, j=7, meg=False):
@@ -36,46 +63,28 @@ def get_image_pair_variation(rdm, i=7, j=7, meg=False):
         tqdm.write(np.mean(rdm, axis=1)[:, i, j])
 
 
-def fmri_investigation_row():
-    for file_name in tqdm(fmri_files):
-        if "92" in file_name:
-            image_set = "92"
+def investigate(task='fmri', image_set=92, image_id=7):
+    plot_image(image_id, image_set)
+    if task == 'fmri':
+        if image_set == 92:
+            rdm = utility.load(fmri_files[0])
         else:
-            image_set = "118"
-        rdms_dict = utility.load(file_name)
-        tqdm.write(
-            ("+"*30+"EVC RDMs : Image Set :: {}"+"+"*30).format(image_set))
-        for _ in trange(15):
-            get_correllation_row(
-                rdms_dict[fmri_keys[0]], 'fmri_row_evc', image_set)
-        tqdm.write(("+"*30+"IT RDMs : Image Set :: {}"+"+"*30).format(image_set))
-        for _ in trange(15):
-            get_correllation_row(
-                rdms_dict[fmri_keys[1]], 'fmri_row_it', image_set)
-
-
-def meg_investigation_row():
-    for file_name in tqdm(meg_files):
-        if "92" in file_name:
-            image_set = "92"
+            rdm = utility.load(fmri_files[1])
+        display('EVC' + "*"*40)
+        display(get_correllation_row(
+            rdm[fmri_keys[0]], image_set, image_id))
+        display('IT' + "*"*40)
+        display(get_correllation_row(
+            rdm[fmri_keys[1]], image_set, image_id))
+    else:
+        if image_set == 92:
+            rdm = utility.load(meg_files[0])
         else:
-            image_set = "118"
-        rdms_dict = utility.load(file_name)
-        tqdm.write(("+"*30+"MEG Early RDMs : Image Set :: {}" +
-                    "+"*30).format(image_set))
-        for _ in range(15):
-            get_correllation_row(
-                np.mean(rdms_dict[meg_keys[0]], axis=1), 'meg_row_early', image_set)
-
-        tqdm.write(("+"*30+"MEG Late RDMs : Image Set :: {}" +
-                    "+"*30).format(image_set))
-        for _ in range(15):
-            get_correllation_row(
-                np.mean(rdms_dict[meg_keys[1]], axis=1), 'meg_row_late', image_set)
-
-
-if __name__ == '__main__':
-    fmri_investigation_row()
-    meg_investigation_row()
-    a = sio.loadmat('fmri_row_evc_92')
-    print(a)
+            rdm = utility.load(meg_files[1])
+        display('Early' + "*"*40)
+        display(get_correllation_row(
+            np.mean(rdm[meg_keys[0]], axis=1), image_set, image_id))
+        display()
+        display('Late' + "*"*40)
+        display(get_correllation_row(
+            np.mean(rdm[meg_keys[1]], axis=1), image_set, image_id))
