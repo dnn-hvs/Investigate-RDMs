@@ -49,17 +49,18 @@ def plot(rdms, ind, image_set, images_dir):
 
 
 def sim_dissim_indices(rdms):
+    print(rdms.shape)
     row_size, col_size = rdms.shape
     rdms = rdms.reshape(row_size*col_size, )
-    # print(rdms)
-    min, max = [], []
+    min_ind, max_ind = [], []
     sorted_rdms_ind = np.argsort(rdms)
     min_10_ind = sorted_rdms_ind[row_size:row_size+20]
     max_10_ind = sorted_rdms_ind[:row_size*col_size-21:-1]
-    sorted_rdms_ind = np.argsort(rdms)
-    min.append([(index//row_size, index % row_size) for index in min_10_ind])
-    max.append([(index//row_size, index % row_size) for index in max_10_ind])
-    return min[0], max[0]
+    min_ind.append([(index//row_size, index % row_size)
+                    for index in min_10_ind])
+    max_ind.append([(index//row_size, index % row_size)
+                    for index in max_10_ind])
+    return min_ind[0], max_ind[0]
 
 
 def _investigate(image_set, subject, rdms, task="fmri"):
@@ -68,13 +69,11 @@ def _investigate(image_set, subject, rdms, task="fmri"):
     if task == "fmri":
         subject_early_rdm = rdms[subject]
         min_ind, max_ind = sim_dissim_indices(subject_early_rdm)
-        # plot_image(min_ind, max_ind, image_set, subject_early_rdm)
         plot(subject_early_rdm, min_ind, image_set, images_dir)
         plot(subject_early_rdm, max_ind, image_set, images_dir)
 
     else:
         subject_early_rdm = np.amin(rdms, axis=0)[subject]
-        print(subject_early_rdm.shape)
         min_ind, _ = sim_dissim_indices(subject_early_rdm)
         plot(subject_early_rdm, min_ind, image_set, images_dir)
 
@@ -83,62 +82,64 @@ def _investigate(image_set, subject, rdms, task="fmri"):
         plot(subject_late_rdm, max_ind, image_set, images_dir)
 
 
-def fmri_investigation():
-    for file_name in fmri_files:
+def fmri_investigation(file_names=fmri_files,):
+    for file_name in file_names:
+        print("File Name: ", file_name)
         if "92" in file_name:
             image_set = "92"
         else:
             image_set = "118"
         rdms_dict = utility.load(file_name)
-        print("+"*30+"EVC RDMs"+"+"*30)
+        print(rdms_dict.keys())
+        print(("+"*30+"EVC RDMs : Image Set :: {}"+"+"*30).format(image_set))
         for subject in range(15):
             print("+"*5, "Subject: ", subject, "+"*5)
             _investigate(image_set, subject, rdms_dict[fmri_keys[0]])
-        print("+"*30+"IT RDMs"+"+"*30)
+        print(("+"*30+"IT RDMs : Image Set :: {}"+"+"*30).format(image_set))
         for subject in range(15):
             print("+"*5, "Subject: ", subject, "+"*5)
             _investigate(image_set, subject, rdms_dict[fmri_keys[1]])
 
 
-def meg_investigation():
-    for file_name in meg_files:
+def meg_investigation(file_names=meg_files):
+    for file_name in file_names:
+        print("File Name: ", file_name)
         if "92" in file_name:
             image_set = "92"
         else:
             image_set = "118"
         rdms_dict = utility.load(file_name)
-        print("+"*30+"MEG Early RDMs"+"+"*30)
+        print(("+"*30+"MEG Early RDMs : Image Set :: {}"+"+"*30).format(image_set))
         for subject in range(15):
-            print("+"*5, "Subject: ", subject, "+"*5)
+            print("+"*5, "Time Point: ", subject, "+"*5)
 
             _investigate(image_set, subject, np.mean(
                 rdms_dict[meg_keys[0]], axis=0))
-        print("+"*30+"MEG Late RDMs"+"+"*30)
+        print(("+"*30+"MEG Late RDMs : Image Set :: {}"+"+"*30).format(image_set))
         for subject in range(15):
-            print("+"*5, "Subject: ", subject, "+"*5)
+            print("+"*5, "Time Point: ", subject, "+"*5)
 
             _investigate(image_set, subject, np.mean(
                 rdms_dict[meg_keys[1]], axis=0))
 
 
-def meg_investigation_with_max():
-    for file_name in meg_files:
+def meg_investigation_with_max(file_names=meg_files):
+
+    for file_name in file_names:
+        print("File Name: ", file_name)
         if "92" in file_name:
             image_set = "92"
         else:
             image_set = "118"
         rdms_dict = utility.load(file_name)
-        print("+"*30+"MEG Early RDMs"+"+"*30)
+        print(("+"*30+"MEG Early RDMs : Image Set :: {}"+"+"*30).format(image_set))
         for subject in range(15):
-            print("+"*5, "Subject: ", subject, "+"*5)
+            print("+"*5, "Time Point: ", subject, "+"*5)
 
             _investigate(image_set, subject,
                          rdms_dict[meg_keys[0]], task="meg")
-        print("+"*30+"MEG Late RDMs"+"+"*30)
+        print(("+"*30+"MEG Late RDMs : Image Set :: {}"+"+"*30).format(image_set))
         for subject in range(15):
-            print("+"*5, "Subject: ", subject, "+"*5)
+            print("+"*5, "Time Point: ", subject, "+"*5)
             _investigate(image_set, subject,
                          rdms_dict[meg_keys[1]], task="meg")
-
-
-# fmri_investigation()
