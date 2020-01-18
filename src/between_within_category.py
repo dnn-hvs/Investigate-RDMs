@@ -1,4 +1,4 @@
-from categories_mapping import image_set_92
+from categories_mapping import category_map
 import glob
 import os
 import numpy as np
@@ -57,7 +57,6 @@ def get_labels_and_mapping(image_set):
     old_new_idx_map = {}
     labels = []
     data_path = '../CategorisedData/'+str(image_set)+'images'
-
     # walk through the images in each category
     for cat_num in range(1, number_of_catg+1):
         image_list = glob.glob(os.path.join(data_path, str(cat_num), "*.jpg"))
@@ -68,7 +67,7 @@ def get_labels_and_mapping(image_set):
 
             # create a mapper for new indices of images vs old indices
             old_new_idx_map[new_image_idx] = old_image_idx
-            labels = labels + [image_set_92[cat_num]]
+            labels = labels + [category_map[image_set][cat_num]]
             new_image_idx += 1
 
     return labels, old_new_idx_map
@@ -148,7 +147,7 @@ def visualise_category_rdms(task, image_set):
         "./categorised_rdms/categorised_"+task+"_"+str(image_set)+".mat")
     # print(rdms_dict[keys[task][0]].shape)
     key1, key2 = keys[task][0], keys[task][1]
-    labels = list(image_set_92.values())
+    labels = list(category_map[image_set].values())
     for subject in range(15):
         path = os.path.join("./visualise_category_rdms", task, str(image_set))
         if not os.path.exists(path):
@@ -201,28 +200,40 @@ def calculate_category_index(task, image_set, file_path):
 
             new_file.write("*"*15+key + "*"*15+"\n")
             new_file.write(
-                tabulate(zip(image_set_92.values(), category_ind[key])))
+                tabulate(zip(category_map[image_set].values(), category_ind[key])))
             new_file.write("\n\n")
 
 
 def main(config):
     tasks = ["fmri", "meg"]
-    image_sets = [92]
+    image_sets = [92, 118]
 
-    for task in tasks:
-        for image_set in image_sets:
+    for image_set in image_sets:
+        file_path = "./category_index_"+str(image_set)+".txt"
+        if config.calculate_ci or config.all:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        for task in tasks:
             print("task:", task, "image_set:", image_set)
-            if config.rearrange:
+            if config.all:
                 rearrange(task, image_set)
-            if config.visualise_rearrange:
                 visualise_rdms(task, image_set)
-            if config.category_rdms:
                 create_category_rdms(task, image_set)
-            if config.visualise_categories:
                 visualise_category_rdms(task, image_set)
-            if config.calculate_ci:
                 calculate_category_index(
-                    task, image_set, config.category_index_path)
+                    task, image_set, file_path)
+            else:
+                if config.rearrange:
+                    rearrange(task, image_set)
+                if config.visualise_rearrange:
+                    visualise_rdms(task, image_set)
+                if config.category_rdms:
+                    create_category_rdms(task, image_set)
+                if config.visualise_categories:
+                    visualise_category_rdms(task, image_set)
+                if config.calculate_ci:
+                    calculate_category_index(
+                        task, image_set, file_path)
 
 
 if __name__ == "__main__":

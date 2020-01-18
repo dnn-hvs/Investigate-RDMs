@@ -25,16 +25,15 @@ class Config(object):
         self.parser.add_argument('--calculate_ci', action="store_true",
                                  help="Calculates the Category Index"
                                  )
+        self.parser.add_argument('--all', action="store_true",
+                                 help="Performs all actions"
+                                 )
 
     def parse(self, args=''):
         if args == '':
             opt = self.parser.parse_args()
         else:
             opt = self.parser.parse_args(args)
-        if opt.calculate_ci:
-            opt.category_index_path = "./category_index.txt"
-            if os.path.exists(opt.category_index_path):
-                os.remove(opt.category_index_path)
 
         return opt
 
