@@ -214,20 +214,15 @@ def main(config):
             print("task:", task, "image_set:", image_set)
             if config.rearrange:
                 rearrange(task, image_set)
-                return
             if config.visualise_rearrange:
                 visualise_rdms(task, image_set)
-                return
             if config.category_rdms:
                 create_category_rdms(task, image_set)
-                return
             if config.visualise_categories:
                 visualise_category_rdms(task, image_set)
-                return
             if config.calculate_ci:
                 calculate_category_index(
                     task, image_set, config.category_index_path)
-                return
 
 
 if __name__ == "__main__":

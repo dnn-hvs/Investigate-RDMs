@@ -32,9 +32,9 @@ class Config(object):
         else:
             opt = self.parser.parse_args(args)
         if opt.calculate_ci:
-            self.category_index_path = "./category_index.txt"
-            if os.path.exists(self.category_index_path):
-                os.remove(self.category_index_path)
+            opt.category_index_path = "./category_index.txt"
+            if os.path.exists(opt.category_index_path):
+                os.remove(opt.category_index_path)
 
         return opt
 
