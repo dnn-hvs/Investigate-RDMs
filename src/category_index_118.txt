@@ -1,0 +1,50 @@
+Task: FMRI :: Image Set: 118
+***************EVC_RDMs***************
+-----------  ---------
+animals      0.123135
+balls        0.55153
+chiars       0.803506
+fruits-food  0.218221
+machine      0.176348
+music        0.369919
+objects      0.0601335
+transport    0.441287
+-----------  ---------
+
+***************IT_RDMs***************
+-----------  --------
+animals      0.276935
+balls        0.701163
+chiars       0.876852
+fruits-food  0.23317
+machine      0.285656
+music        0.470228
+objects      0.180197
+transport    0.512379
+-----------  --------
+
+Task: MEG :: Image Set: 118
+***************MEG_RDMs_early***************
+-----------  ---------
+animals       0.461816
+balls         0.684662
+chiars        1.04825
+fruits-food   0.408192
+machine       0.233473
+music         0.332026
+objects      -0.140928
+transport     0.50995
+-----------  ---------
+
+***************MEG_RDMs_late***************
+-----------  ---------
+animals      0.470194
+balls        0.895736
+chiars       1.07923
+fruits-food  0.437188
+machine      0.37037
+music        0.45862
+objects      0.0883778
+transport    0.681702
+-----------  ---------
+
