@@ -1,0 +1,50 @@
+Task: FMRI :: Image Set: 92
+***************EVC_RDMs***************
+--------------  --------
+objects-scenes  0.176153
+fruits-veggies  0.239425
+animal-face     0.666843
+animals         0.599519
+monkeyfaces     1.13019
+human           1.53328
+faces           0.668376
+body-parts      0.431408
+--------------  --------
+
+***************IT_RDMs***************
+--------------  --------
+objects-scenes  0.396849
+fruits-veggies  0.613456
+animal-face     0.798024
+animals         0.585404
+monkeyfaces     1.1789
+human           1.48995
+faces           1.19953
+body-parts      0.628936
+--------------  --------
+
+Task: MEG :: Image Set: 92
+***************MEG_RDMs_early***************
+--------------  ---------
+objects-scenes  0.0721236
+fruits-veggies  0.137422
+animal-face     0.691626
+animals         0.356745
+monkeyfaces     0.843243
+human           1.05757
+faces           1.02189
+body-parts      0.436723
+--------------  ---------
+
+***************MEG_RDMs_late***************
+--------------  --------
+objects-scenes  0.283836
+fruits-veggies  0.403292
+animal-face     1.19626
+animals         0.649362
+monkeyfaces     1.241
+human           1.59038
+faces           1.50325
+body-parts      0.77508
+--------------  --------
+
